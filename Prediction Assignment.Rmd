@@ -1,0 +1,58 @@
+Prediction Assignment Writeup
+=================================================
+##Synopsis
+We are going predict the manner in which they did the exercise. This is the "classe" variable in the training set. You may use any of the other variables to predict with.
+
+##Data Processing
+###Reading Data
+```{r}
+library(caret)
+
+set.seed(1234)
+traindata<-read.csv("pml-training.csv")
+testdata<-read.csv("pml-testing.csv")
+dim(traindata)
+dim(testdata)
+```
+###Cleaning Data
+
+```{r}
+traindata<-traindata[, -c(1:7)]
+testdata<-testdata[, -c(1:7)]
+
+traindata <- traindata[,-nearZeroVar(traindata)]
+testdata <- testdata[,-nearZeroVar(testdata)]
+
+traindata<- traindata[,colSums(is.na(traindata)) == 0]
+testdata<- testdata[,colSums(is.na(testdata)) == 0]
+dim(traindata)
+dim(testdata)
+
+
+inTrain <- createDataPartition(y=traindata$classe,
+                              p=0.6, list=FALSE)
+traindata<-traindata[inTrain,]
+testingdata<-traindata[-inTrain,]
+dim(traindata)
+dim(testingdata)
+
+```
+
+##Modeling
+###Random Forest
+```{r}
+library(randomForest)
+
+RandomModel<-randomForest(classe ~ . , data = traindata, method = "class")
+prediction<- predict(RandomModel, testingdata, type = "class")
+plot(prediction)
+confusionMatrix(prediction, testingdata$classe)
+
+```
+
+###Use the above model on the test data
+
+```{r}
+TestPrediction <- predict(RandomModel, testdata, type = "class")
+TestPrediction
+```
